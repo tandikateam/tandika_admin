@@ -31,7 +31,7 @@
 	import { updateDocument } from '$lib/firebaseUtils';
 	import { invalidate, invalidateAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
-	const apiKey = 'AIzaSyCk1EMtXWt7aWDc5Izj-w6p7YTOyeHeSVU';
+	const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 	const genAI = new GoogleGenerativeAI(apiKey);
 	const model = genAI.getGenerativeModel({
 		model: 'gemini-1.5-pro'

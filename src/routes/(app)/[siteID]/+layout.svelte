@@ -92,15 +92,15 @@
 
 		<Separator class="" />
 
-		<Button variant="ghost" on:click={()=>{
+		<!-- <Button variant="ghost" on:click={()=>{
 			history.back()
 		}}>
 			Go Back
-		</Button>
+		</Button> -->
 
 	</div>
 </div>
-{:else if userSites.length > 0 && data.siteData == null}
+{:else if userSites.length > 0 && !data.siteData }
 <div class=" min-h-screen w-full flex flex-col gap-3 items-center justify-center bg-muted/60 z-[50] glassmorph top-0 left-0 fixed">
 	<div class="px-8 py-14 rounded-md bg-background
 	min-w-96

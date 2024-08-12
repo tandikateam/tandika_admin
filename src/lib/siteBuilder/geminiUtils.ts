@@ -7,7 +7,7 @@ import { json } from '@sveltejs/kit';
 function extractJSObject(responseString) {
 	//
 }
-const apiKey = 'AIzaSyCk1EMtXWt7aWDc5Izj-w6p7YTOyeHeSVU';
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 const fileManager = new GoogleAIFileManager(apiKey);
 
