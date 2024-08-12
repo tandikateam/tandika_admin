@@ -5,7 +5,7 @@ import { writeFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
-const TIMEOUT = 120000; // 60 seconds
+const TIMEOUT = 150000; // 60 seconds
 
 export async function POST({ request }) {
     console.log('POST request received');

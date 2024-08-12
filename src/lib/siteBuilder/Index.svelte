@@ -54,6 +54,7 @@
 	import { authUser } from '$lib/stores/persistedAuthStore';
 	import { schema } from './utils';
 	import { uid } from 'uid';
+	import { goto } from '$app/navigation';
 	let file: { name: any } | null;
 	let fileInput: HTMLInputElement;
 	function handleFileSelect(event) {
@@ -62,16 +63,14 @@
 	}
 
 	function cleanString(str) {
-		// Convert to lowercase
+			// Convert to lowercase
 		str = str.toLowerCase();
-
-		// Remove symbols and spaces
-		str = str.replace(/[^a-z0-9]/g, '');
-
-		// Trim the string
-		str = str.trim();
-
-		return str;
+// Remove symbols and spaces
+str = str.replace(/[^a-z0-9]/g, '');
+// Trim the string
+str = str.trim();
+return str
+		
 	}
 
 	let duration = 500;
@@ -109,8 +108,9 @@
             throw new Error(result.error);
         }
 
-        site.schema = result;
+        site.schema = JSON.parse(result);
         let _schema = { ...site.schema };
+		// console.log()
 
         fileStep = { s: 'Saving your site.', t: 'loading' };
         let docId = await saveSite({
@@ -121,13 +121,13 @@
             active: true,
             startup_logo: null,
             owner: $authUser.uid,
-            subdomain: cleanString(_schema.startupName) + uid(5),
+            subdomain: cleanString(_schema?.startupName || "") + uid(6),
             visits: [],
             socials: [],
             contacts: []
         });
 
-        await userSites('append', $authUser?.email, _schema.startupName, docId);
+        await userSites('append', $authUser?.email, _schema?.startupName, docId);
 
         fileStep = { s: 'Done.', t: 'success' };
         dispatch('finish', { id: docId });
@@ -135,7 +135,7 @@
             description: 'Your new Tandika site was created successfully'
         });
 
-        goto(`/dashboard/sites/${docId}`);
+        goto(`/${docId}/dashboard`);
 
     } catch (err) {
         console.error(err);
