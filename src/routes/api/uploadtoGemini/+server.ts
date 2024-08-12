@@ -1,51 +1,51 @@
 //@ts-nocheck
-import { writeFile, unlink } from 'fs/promises';
+import { json } from '@sveltejs/kit';
 import { generateSchema } from '$lib/siteBuilder/geminiUtils';
+import { writeFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { json } from '@sveltejs/kit';
+
+const TIMEOUT = 120000; // 60 seconds
 
 export async function POST({ request }) {
-	console.log('POST request received');
-	try {
-		const formData = await request.formData();
-		console.log('Form data parsed');
+    console.log('POST request received');
+    
+    const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Operation timed out')), TIMEOUT)
+    );
+    
+    let tempFilePath;
 
-		const file = formData.get('file');
-		const ctas = formData.get('ctas');
+    try {
+        const formData = await request.formData();
+        const file = formData.get('file');
+        const ctas = formData.get('ctas');
 
-		if (!file) {
-			console.warn('No file received');
-			return json({ success: false, error: 'No file uploaded' }, { status: 400 });
-		}
+        if (!file) {
+            return json({ success: false, error: 'No file uploaded' }, { status: 400 });
+        }
 
-		console.log(`File received: ${file.name}`);
+        tempFilePath = join(tmpdir(), file.name);
+        const fileBuffer = Buffer.from(await file.arrayBuffer());
+        await writeFile(tempFilePath, fileBuffer);
 
-		const tempFilePath = join(tmpdir(), file.name);
-		console.log(`Temporary file path: ${tempFilePath}`);
+        const schemaPromise = generateSchema(tempFilePath, ctas);
+        const result = await Promise.race([schemaPromise, timeoutPromise]);
 
-		try {
-			const fileBuffer = Buffer.from(await file.arrayBuffer());
-			await writeFile(tempFilePath, fileBuffer);
-			console.log('File written to temporary location');
-
-			let result = await generateSchema(tempFilePath, ctas);
-			console.log('Schema generated');
-
-			return json(result);
-		} catch (error) {
-			console.error('Error processing file:', error);
-			return json({ success: false, error: error.message }, { status: 500 });
-		} finally {
-			try {
-				await unlink(tempFilePath);
-				console.log('Temporary file removed');
-			} catch (unlinkError) {
-				console.error('Error removing temporary file:', unlinkError);
-			}
-		}
-	} catch (error) {
-		console.error('Unexpected error:', error);
-		return json({ success: false, error: 'Internal server error' }, { status: 500 });
-	}
+        return json(result);
+    } catch (error) {
+        console.error('Error:', error);
+        return json(
+            { success: false, error: error.message }, 
+            { status: error.message === 'Operation timed out' ? 504 : 500 }
+        );
+    } finally {
+        if (tempFilePath) {
+            try {
+                await unlink(tempFilePath);
+            } catch (unlinkError) {
+                console.error('Error removing temporary file:', unlinkError);
+            }
+        }
+    }
 }

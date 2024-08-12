@@ -80,71 +80,71 @@
 	let fileStep = { s: 'Uploading your file.', t: 'loading' };
 
 	async function handleSubmit() {
-		uploading = true;
-		step = 3;
-		if (!file) return;
-		let fileURL = await uploadFile(file, `pitchdecks`);
-		site.pitchdeck_URL_firebase = fileURL;
-		let error = null;
-		let result = null;
-		const formData = new FormData();
-		formData.append('file', file);
-		formData.append('ctas', site.actions);
+    uploading = true;
+    step = 3;
+    if (!file) return;
 
-		try {
-			fileStep = { s: 'Analysing your Pitchdeck.', t: 'loading' };
+    try {
+        fileStep = { s: 'Uploading your Pitchdeck.', t: 'loading' };
+        let fileURL = await uploadFile(file, `pitchdecks`);
+        site.pitchdeck_URL_firebase = fileURL;
 
-			const response = await fetch('/api/uploadtoGemini', {
-				method: 'POST',
-				body: formData
-			});
-			const data = await response.json();
-			if (data) {
-				result = data;
-				site.schema = JSON.parse(result) || null;
-				let _schema = { ...site.schema }; //Deconstruct schema
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('ctas', site.actions);
 
-				fileStep = { s: 'Saving your site.', t: 'loading' };
-				// Break it all down!
-				let docId = await saveSite({
-					..._schema,
-					pitchdeck_URL_firebase: site.pitchdeck_URL_firebase,
-					startup_name: _schema.startupName,
-					actions: ['contact'],
-					active: true,
-					startup_logo: null,
-					owner: $authUser.uid,
-					subdomain: cleanString(_schema.startupName) + uid(5),
-					visits: [],
-					socials: [],
-					contacts: []
-				});
+        fileStep = { s: 'Analysing your Pitchdeck.', t: 'loading' };
+        const response = await fetch('/api/uploadtoGemini', {
+            method: 'POST',
+            body: formData
+        });
 
-				//Update User sites array
-				await userSites('append', $authUser?.email, _schema.startupName, docId);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-				fileStep = { s: 'Done.', t: 'success' };
-				//Close Drawer and redirect!
-				dispatch('finish', {
-					id: docId
-				});
-				toast.success('Success!', {
-					description: 'Your new Tandika site was created successfully'
-				});
-				if (!result) {
-					fileStep = { s: 'Something went wrong.', t: 'error' };
-					toast.error('Error', { description: 'There was an error analyzing your Pitch Deck' });
-					return;
-				}
-			}
-		} catch (err) {
-			toast.error('Error', { description: 'There was an error analyzing your Pitch Deck' });
-			fileStep = { s: 'Something went wrong.', t: 'error' };
-			console.error(err);
-		} finally {
-			//
-		}
-	}
+        const result = await response.json();
+
+        if (result.error) {
+            throw new Error(result.error);
+        }
+
+        site.schema = result;
+        let _schema = { ...site.schema };
+
+        fileStep = { s: 'Saving your site.', t: 'loading' };
+        let docId = await saveSite({
+            ..._schema,
+            pitchdeck_URL_firebase: site.pitchdeck_URL_firebase,
+            startup_name: _schema.startupName,
+            actions: ['contact'],
+            active: true,
+            startup_logo: null,
+            owner: $authUser.uid,
+            subdomain: cleanString(_schema.startupName) + uid(5),
+            visits: [],
+            socials: [],
+            contacts: []
+        });
+
+        await userSites('append', $authUser?.email, _schema.startupName, docId);
+
+        fileStep = { s: 'Done.', t: 'success' };
+        dispatch('finish', { id: docId });
+        toast.success('Success!', {
+            description: 'Your new Tandika site was created successfully'
+        });
+
+        goto(`/dashboard/sites/${docId}`);
+
+    } catch (err) {
+        console.error(err);
+        fileStep = { s: 'Something went wrong.', t: 'error' };
+        toast.error('Error', { description: err.message || 'There was an error processing your Pitch Deck' });
+    } finally {
+        uploading = false;
+    }
+}
 </script>
 
 <div>
