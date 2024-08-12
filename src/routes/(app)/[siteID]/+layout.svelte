@@ -29,14 +29,15 @@
 	import { cn } from '$lib/utils.js';
 	import Index from '$lib/siteBuilder/Index.svelte';
 	import { authUser } from '$lib/stores/persistedAuthStore';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto, invalidate, invalidateAll } from '$app/navigation';
 	import { ModeWatcher } from 'mode-watcher';
+	import { setMode, mode } from "mode-watcher";
 	import ModeToggle from '$lib/customComponents/ModeToggle.svelte';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 	export let data;
 	$: siteID = data?.siteID;
 	let siteDrawer = false;
-
+	$: console.log(data)
 	//
 	let routes = [
 		{ href: 'dashboard', route: 'Dashboard', icon: Layout },
@@ -66,18 +67,88 @@
 	// $: console.log(data?.userSites);
 	import { cubicInOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
+	import { Separator } from '$lib/components/ui/separator';
 	const [send, receive] = crossfade({
 		duration: 250,
 		easing: cubicInOut
 	});
 </script>
 
+
+{#if userSites.length == 0}
+<div class=" min-h-screen w-full flex flex-col gap-3 items-center justify-center bg-muted/60 z-[50] glassmorph top-0 left-0 fixed">
+	<div class="px-8 py-14 rounded-md bg-background  shadow-xl flex flex-col gap-5 items-center justify-center">
+		
+		<img src="/vectors/18.svg" class="h-44 mx-auto mb-3" alt="">
+		
+		<p class="text-2xl w-9/12 font-semibold text-center">Looks like you have no sites yet.</p>
+		<Button class="mx-auto" 
+		on:click={() => {
+			siteDrawer = true;
+		}}
+		>
+			Create a New Site
+		</Button>
+
+		<Separator class="" />
+
+		<Button variant="ghost" on:click={()=>{
+			history.back()
+		}}>
+			Go Back
+		</Button>
+
+	</div>
+</div>
+{:else if userSites.length > 0 && data.siteData == null}
+<div class=" min-h-screen w-full flex flex-col gap-3 items-center justify-center bg-muted/60 z-[50] glassmorph top-0 left-0 fixed">
+	<div class="px-8 py-14 rounded-md bg-background
+	min-w-96
+	shadow-xl flex flex-col gap-5 items-center justify-center">
+		
+		<!-- <img src="/vectors/18.svg" class="h-44 mx-auto mb-3" alt="">	 -->
+		<p class="text-lg w-10/12 font-semibold text-center">Please select your site below.</p>
+	
+		<div>
+			<Command.Root>
+				<Command.Input placeholder="Search site..." />
+				<Command.Empty>
+					<small>No websites found.</small>
+				</Command.Empty>
+				<Command.Group >
+					{#each userSites as site}
+						<Command.Item 
+						class="cursor-pointer"
+							value={site.site_id}
+							onSelect={() => {
+								// value = currentValue;
+								siteID = site.siteID;
+								invalidateAll().then(() => {
+									goto(`/${site.site_id}/dashboard`);
+								});
+							}}
+						>
+							{site.startup_name}
+						</Command.Item>
+					{/each}
+				</Command.Group>
+			</Command.Root>
+		</div>
+
+	</div>
+</div>
+{/if}
+
+
 <div class="grid h-screen w-full md:pl-56 lg:pl-56">
 	<aside class="inset-y fixed left-0 z-20 hidden h-full min-w-56 flex-col border-r md:flex lg:flex">
 		<div class="border-b p-2">
-			<Button variant="outline" size="icon" aria-label="Home">
-				<Bolt class="size-5 fill-foreground" />
-			</Button>
+
+			<a href="/" class="pl-3">
+			<img src="{$mode == 'dark'? '/logo_light.png': '/logo.png' }" class="h-10 w-auto" alt="">
+			</a>
+
+			
 		</div>
 		<nav class="grid gap-0">
 			<div class="p-4">
@@ -168,7 +239,7 @@
 								class="ml-2 rounded-full text-xs
 							{isActive ? 'text-primary-foreground' : ''}
 							"
-								variant="default">2</Badge
+								variant="default">{data.corrCount || 0}</Badge
 							>
 						{/if}
 					</span>
@@ -256,18 +327,19 @@
 			</div>
 		</header>
 		<main class="p-0">
-			<slot />
+		
+	<slot />
 		</main>
 	</div>
 </div>
 <ModeWatcher />
 
-<Drawer.Root bind:open={siteDrawer}>
-	<Drawer.Content>
+<Drawer.Root bind:open={siteDrawer} >
+	<Drawer.Content class="z-[90]">
 		<div class="h-[75vh] max-h-[80vh]">
 			<Index
 				on:finish={(e) => {
-					invalidateAll().then(() => {
+					invalidate('app:layout').then(() => {
 						goto(`/${e.detail.id}/dashboard`);
 						siteDrawer = false;
 					});

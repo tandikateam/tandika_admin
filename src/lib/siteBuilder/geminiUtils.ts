@@ -99,7 +99,7 @@ export async function generateSchema(filePath, ctas) {
     19. In the hero section, the ctas type can strictly be any of the following actions: contact, pre_order, wait_list, demo_video, request_demo, newsletter
     20. For the channels object: extract ALL communication channels that may be in the pitch deck - emails, social media, phone numbers etc. 
     and add them to the channels object array: set the option for channel as any of the following - 
-    Phone, Whatsapp, LinkedIn, Twitter_X, Facebook, Instagram, Email etc.
+    Phone, WhatsApp, LinkedIn, Twitter_X, Facebook, Instagram, Email etc.
      and all set to active as true for all: Strictly use URLs for socialmedia links.
     21. For the mainContact, set the channels to the CEO's contact information if available or any other relevant
      contacts; use either phone numbers or emails only for mainContact.

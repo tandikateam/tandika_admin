@@ -22,6 +22,8 @@
 	let registering: Boolean = false;
 	let phone: string = null;
 	let valid: Boolean;
+
+	
 </script>
 
 <svelte:head>
@@ -36,9 +38,11 @@
 	<div class="flex flex-row items-center justify-center py-8">
 		<div class="mx-auto grid w-[350px] gap-6">
 			<div class="grid gap-2 text-center">
-				<h1 class="text-3xl font-bold">
+				<!-- <h1 class="text-3xl font-bold">
 					Let your Startup, <span class="text-primary">Standout</span>
-				</h1>
+				</h1> -->
+				<img src="/logo.png" class="h-20 mx-auto w-auto" alt="">
+
 				<p class="text-balance text-muted-foreground">Let's get started</p>
 			</div>
 			<form
@@ -88,7 +92,7 @@
 						});
 
 						// Redirect to dashboard
-						goto('/new/dashboard');
+						goto('/nosite_/dashboard');
 					} catch (error) {
 						toast.error('Something went wrong!', { description: error.message });
 						throw error;
@@ -122,7 +126,9 @@
 						{/if}
 					</Button>
 
-					<GoogleSignBtn on:signIn={() => {}} />
+					<!-- <GoogleSignBtn on:signIn={async (e) => {
+						let user = e.detail.user
+					}} /> -->
 				</div>
 
 				<div class="mt-4 text-center text-sm">

@@ -24,7 +24,7 @@
 		{ action: 'Contact You', icon: Send, id: 'contact' }, //Open contact form
 		{ action: 'Pre-Order', icon: PackageCheck, id: 'pre_order' }, //Open PreOrder form
 		{ action: 'Join a Waitlist', icon: FileClock, id: 'wait_list' }, //Open Waitlist Form
-		{ action: 'Watch a Demo Video', icon: SquarePlay, id: 'demo_video' }, //Show Demo Video
+		// { action: 'Watch a Demo Video', icon: SquarePlay, id: 'demo_video' }, //Show Demo Video
 		{ action: 'Request a Demo', icon: TabletSmartphone, id: 'request_demo' }, //Open Request Demo Form
 		{ action: 'Join Newsletter', icon: Newspaper, id: 'newsletter' } //Open Newsletter Form
 	];
@@ -357,21 +357,29 @@
 		</div>
 	{:else if step == 3}
 		<div
-			class="relative flex h-full min-h-[60vh] w-full flex-row items-start justify-between gap-3"
+			class="relative flex h-full min-h-[60vh] w-full flex-row  items-start justify-between gap-3"
 		>
+
 			<div
-				class="mx-auto my-5 flex size-96 flex-col items-center justify-center gap-3
-				 rounded-md border-2 border-primary text-primary shadow-2xl"
+				class="mx-auto my-5 py-12 flex flex-col items-center justify-center gap-3
+				 "
 			>
-				{#if fileStep.t == 'loading'}
-					<Loader class="size-10" />
-				{:else if fileStep.t == 'error'}
-					<span>Error</span>
-				{:else if fileStep.t == 'success'}
-					<span>Success</span>
-				{/if}
-				<p class="text-center text-xl font-light">{fileStep.s}</p>
+		<img src="/vectors/14.svg" class="h-60 mx-auto mb-3" alt="">	
+
+			<div class="flex flex-row gap-3 items-center justify-center"
+			>
+			{#if fileStep.t == 'loading'}
+			<Loader class="size-6" />
+		{:else if fileStep.t == 'error'}
+			<span>Error</span>
+		{:else if fileStep.t == 'success'}
+			<span>Success</span>
+		{/if}
+		<p class="text-center text-xl font-normal">{fileStep.s}</p>
 			</div>
+			<p class="text-center text-lg font-light">This may take up to 3 minutes....</p>
+
+		</div>
 		</div>
 	{/if}
 </div>

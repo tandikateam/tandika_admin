@@ -18,7 +18,10 @@ import {
 	arrayRemove,
 	query,
 	where,
-	arrayUnion
+	arrayUnion,
+	getCountFromServer,
+	orderBy,
+	limit
 } from 'firebase/firestore';
 import { authUser } from '$lib/stores/persistedAuthStore';
 
@@ -180,12 +183,12 @@ export async function updateChannelStatus(documentId, objectToUpdate, newBoolean
 	}
 }
 
-export async function addChannel(documentId, objectToAdd) {
+export async function addChannel(documentId, objectsToAdd) {
 	const docRef = doc(db, 'sites', documentId);
 	try {
 		//Add the new updated object
 		await updateDoc(docRef, {
-			channels: arrayUnion(objectToAdd)
+			channels: arrayUnion(...objectsToAdd)
 		});
 		console.log('Object updated successfully');
 	} catch (error) {
@@ -202,6 +205,68 @@ export async function removeChannel(documentId, objectToAdd) {
 			channels: arrayRemove(objectToAdd)
 		});
 		console.log('Object updated successfully');
+	} catch (error) {
+		console.error(error);
+		throw error;
+	}
+}
+
+//Get Correspondence
+export async function getCorrespondence(viewed, siteID) {
+	try {
+		let q;
+
+		if (!viewed) {
+			q = query(
+				collection(db, 'correspondence'),
+				where('siteID', '==', siteID),
+				orderBy('createdAt'),
+				limit(20)
+			);
+		} else {
+			q = query(
+				collection(db, 'correspondence'),
+				where('siteID', '==', siteID),
+				where('viewed', '==', viewed),
+				orderBy('createdAt'),
+				limit(20)
+			);
+		}
+
+		let corr = [];
+		const querySnapshot = await getDocs(q);
+		querySnapshot.forEach((doc) => {
+			//   console.log(doc.id, " => ", doc.data());
+			corr = [...corr, { ...doc.data(), id: doc.id }];
+		});
+		return corr;
+	} catch (error) {
+		console.error(error);
+		throw error;
+	}
+}
+
+//Get count
+export async function getCorrCount(siteID) {
+	try {
+		const coll = collection(db, 'correspondence');
+		const q = query(coll, where('viewed', '==', false), where('siteID', '==', siteID));
+		const snapshot = await getCountFromServer(q);
+		// console.log('count: ', snapshot.data().count);
+		return snapshot.data().count;
+	} catch (error) {
+		console.error(error);
+		throw error;
+	}
+}
+
+//Toggle Correspondence status
+export async function toggleViewed(id, viewed) {
+	try {
+		const corRef = doc(db, 'correspondence', id);
+		await updateDoc(corRef, {
+			viewed: viewed
+		});
 	} catch (error) {
 		console.error(error);
 		throw error;

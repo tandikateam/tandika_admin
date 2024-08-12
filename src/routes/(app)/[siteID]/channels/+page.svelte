@@ -6,25 +6,30 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Ellipsis, Mail, Megaphone, Plus } from 'lucide-svelte';
+	import { CircleAlert, Ellipsis, Mail, Megaphone, Plus } from 'lucide-svelte';
 	import SimpleSocialIcons from '$lib/customComponents/SimpleSocialIcons.svelte';
 	import { invalidate, invalidateAll } from '$app/navigation';
 	import { addChannel, removeChannel, updateChannelStatus } from '$lib/firebaseUtils';
 	import * as Drawer from '$lib/components/ui/drawer';
 	import { toast } from 'svelte-sonner';
 	import { Input } from '$lib/components/ui/input';
+	import * as Tooltip from "$lib/components/ui/tooltip";
+	import { Checkbox } from "$lib/components/ui/checkbox";
+	import { Label } from "$lib/components/ui/label";
+	import { fade } from 'svelte/transition';
 
 	export let data;
 	let channelDrawer = false;
 	let channels = data?.siteData?.channels || [
 		{
-			channel: '', //Phone, Whatsapp, LinkedIn, X, Facebook, Instagram, Email
+			channel: '', //Phone, WhatsApp, LinkedIn, X, Facebook, Instagram, Email
 			value: '',
 			responseRate: 0,
 			active: true
 			// primary: false
 		}
 	];
+	let acceptWhatsApp = false
 	function identifyChannel(input: string) {
 		// Helper function to validate email
 		function isValidEmail(email: string) {
@@ -247,15 +252,16 @@
 			<Drawer.Header>
 				<Drawer.Title>Add a New Channel</Drawer.Title>
 				<Drawer.Description>
-					<div class="my-4 flex flex-row items-center gap-5">
+					<div class="mt-4 flex flex-row items-center gap-5">
 						<span
 							class="flex size-12 items-center justify-center rounded-md bg-muted text-muted-foreground"
 						>
 							<SimpleSocialIcons channel={channel.channel} class="size-7 " />
 						</span>
+						<!-- <p>{channel.channel}</p> -->
 						<Input
 							type="text"
-							placeholder="Paste your URL, Phone Number or Email"
+							placeholder="Paste or enter your social media URL, Phone Number or Email"
 							bind:value={channel.value}
 							on:keyup={() => {
 								//Check value
@@ -263,7 +269,36 @@
 							}}
 							class="w-full"
 						/>
+						{#if channel.channel == "Phone"}
+
+						<span class="ml-2" in:fade>
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									<CircleAlert class="size-6 " />
+								</Tooltip.Trigger>
+								<Tooltip.Content>
+								  <p>Use International Formatting for phone numbers</p>
+								</Tooltip.Content>
+							  </Tooltip.Root>
+						</span>
+{/if}
 					</div>
+
+					{#if channel.channel == "Phone"}
+					<div class="flex items-center justify-end mt-2 space-x-2" in:fade>
+						<Checkbox id="whatsapp" 
+						bind:checked={acceptWhatsApp}
+						
+						/>
+						<Label
+						  for="whatsapp"
+						  class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 peer-data-[disabled=true]:cursor-not-allowed peer-data-[disabled=true]:opacity-70"
+						>
+						  Add phone number to WhatsApp as well.
+						</Label>
+					  </div>
+					{/if}
+
 				</Drawer.Description>
 			</Drawer.Header>
 			<Drawer.Footer class="flex flex-row items-center justify-end gap-4">
@@ -273,7 +308,14 @@
 					on:click={() => {
 						//Add a new channel
 						addingChannel = true;
-						addChannel(data.siteID, channel)
+						let c = []
+						if(acceptWhatsApp){
+							c = [...c, channel, {...channel, channel: "WhatsApp"}]
+						}else{
+							c = [...c, channel ]
+						}
+
+						addChannel(data.siteID, c)
 							.then(() => {
 								invalidate('app:layout').then(() => {
 									toast.dismiss();

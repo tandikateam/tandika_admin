@@ -80,3 +80,9 @@
 body {
 	font-family: 'ClashDisplay', sans-serif;
 }
+
+.glassmorph{
+backdrop-filter: blur( 4px );
+-webkit-backdrop-filter: blur( 4px );
+border-radius: 10px;
+}

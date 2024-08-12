@@ -1,22 +1,14 @@
 <script>
+// @ts-nocheck
+
 	import { Button } from '$lib/components/ui/button';
 
 	export let data;
 	let siteData = data.siteData;
+	let correspondence = data?.correspondence || []
 	import * as Card from '$lib/components/ui/card';
 	import {
-		ListFilter,
-		File,
 		Ellipsis,
-		Package,
-		Package2,
-		PanelLeft,
-		CirclePlus,
-		Search,
-		Settings,
-		ShoppingCart,
-		UsersRound,
-		Megaphone,
 		MessageCircle
 	} from 'lucide-svelte';
 
@@ -28,6 +20,23 @@
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { Separator } from '$lib/components/ui/separator';
+	import { toggleViewed } from '$lib/firebaseUtils';
+	import { toast } from 'svelte-sonner';
+	import { invalidate } from '$app/navigation';
+
+	function formatDate(dateObject) {
+    if (!dateObject || !dateObject.seconds) {
+      return 'Invalid Date';
+    }
+    const jsDate = new Date(dateObject.seconds * 1000); // Convert seconds to milliseconds
+    
+    // Using built-in Date methods:
+    return jsDate.toLocaleDateString();
+    
+    // Or, if you prefer using date-fns:
+    // return format(jsDate, 'PP'); // Format as 'Apr 29, 2021'
+  }
+
 </script>
 
 <main class="">
@@ -56,7 +65,7 @@
 			<Table.Root>
 				<Table.Header class="bg-muted text-muted-foreground">
 					<Table.Row>
-						<Table.Head class="hidden w-[100px] md:table-cell">Type</Table.Head>
+						<Table.Head class="hidden w-[100px] md:table-cell pl-5">Type</Table.Head>
 						<Table.Head>Name</Table.Head>
 						<Table.Head>Phone Number</Table.Head>
 						<Table.Head class="">Email</Table.Head>
@@ -68,17 +77,18 @@
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
-					<Table.Row>
-						<Table.Cell class="table-cell">
-							<Badge variant="outline">Draft</Badge>
+					{#each correspondence as cor}
+					<Table.Row class="{cor.viewed ? '': 'bg-muted/40 text-muted-foreground'}">
+						<Table.Cell class="table-cell pl-5">
+							<Badge variant="outline" class="uppercase">{cor?.cta}</Badge>
 						</Table.Cell>
-						<Table.Cell class="font-medium">Laser Lemonade Machine</Table.Cell>
+						<Table.Cell class="font-medium">{cor?.name}</Table.Cell>
 						<Table.Cell>
-							<Badge variant="outline">Draft</Badge>
+							{cor?.tel}
 						</Table.Cell>
-						<Table.Cell class="">$499.99</Table.Cell>
-						<Table.Cell class="">25</Table.Cell>
-						<Table.Cell class="">2023-07-12 10:42 AM</Table.Cell>
+						<Table.Cell class="">{cor?.email} </Table.Cell>
+						<Table.Cell class="max-w-56">{cor?.message}</Table.Cell>
+						<Table.Cell class="">{formatDate(cor?.createdAt)}</Table.Cell>
 						<Table.Cell>
 							<DropdownMenu.Root>
 								<DropdownMenu.Trigger asChild let:builder>
@@ -89,12 +99,28 @@
 								</DropdownMenu.Trigger>
 								<DropdownMenu.Content align="end">
 									<DropdownMenu.Label>Actions</DropdownMenu.Label>
-									<DropdownMenu.Item>Edit</DropdownMenu.Item>
-									<DropdownMenu.Item>Delete</DropdownMenu.Item>
+									<DropdownMenu.Item on:click={async ()=>{
+										toast.loading('Updating', {description: `Marking as ${cor.viewed ? 'unread': 'read'}`})
+										//toggle viewed
+										toggleViewed(cor.id, !cor.viewed).then(()=>{
+										invalidate('app:layout').then(()=>{
+											toast.dismiss()
+											// correspondence = data?.correspondence || []
+											cor.viewed = !cor.viewed
+											toast.success("Success", {description: "Updated successfully"})
+											})
+										}).catch((e)=>{
+											console.error(e)
+											toast.success("Error", {description: "Something went wrong"})
+										})
+									}}>Mark as {cor.viewed ? 'Unread': 'Read'}</DropdownMenu.Item>
+									<DropdownMenu.Item
+									class="" disabled>Delete</DropdownMenu.Item>
 								</DropdownMenu.Content>
 							</DropdownMenu.Root>
 						</Table.Cell>
 					</Table.Row>
+					{/each}
 				</Table.Body>
 			</Table.Root>
 		</main>

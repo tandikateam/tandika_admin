@@ -28,9 +28,11 @@
 		<div class="mx-auto grid w-[350px] gap-6">
 			<div class="grid gap-2 text-center">
 				<h1 class="text-3xl font-bold">Welcome back</h1>
-				<p class="text-balance text-muted-foreground">
+
+				<img src="/logo.png" class="h-24 mx-auto w-auto" alt="">
+				<!-- <p class="text-balance text-muted-foreground">
 					Login to <span class="underline underline-offset-2">Tandika</span>
-				</p>
+				</p> -->
 			</div>
 			<form
 				on:submit|preventDefault={() => {
@@ -84,7 +86,7 @@
 						{/if}
 					</Button>
 
-					<GoogleSignBtn on:signIn={() => {}} />
+					<!-- <GoogleSignBtn on:signIn={() => {}} /> -->
 				</div>
 			</form>
 			<div class="mt-4 text-center text-sm">

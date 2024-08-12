@@ -12,7 +12,7 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Toggle } from '$lib/components/ui/toggle';
 	import { updateDocument, checkAvailability, uploadFile } from '$lib/firebaseUtils';
-	import { ClipboardCopy, Power, PowerOff, Check, Ban, CircleDashed } from 'lucide-svelte';
+	import { ClipboardCopy, Power, PowerOff, Check, Ban, CircleDashed, Share2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { invalidate, invalidateAll } from '$app/navigation';
 	import * as Dialog from '$lib/components/ui/dialog';
@@ -205,6 +205,35 @@
 								</Tooltip.Trigger>
 								<Tooltip.Content>
 									<p>Copy URL</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
+
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									<Button
+										class="ml-2"
+										variant="outline"
+										on:click={async() => {
+												// writeText()
+												if (navigator.share) {
+    try {
+      await navigator.share({
+        title: `Check out ${siteData.startup_name}\'s Tandika Site`,
+        text: 'See how I kutandika...',
+        url: `https://www.tandika.com/${siteData.subdomain}`
+      });
+      console.log('URL shared successfully');
+    } catch (error) {
+      console.log('Error sharing URL:', error);
+    }
+  } 
+										}}
+									>
+										<Share2 class="size-4" />
+									</Button>
+								</Tooltip.Trigger>
+								<Tooltip.Content>
+									<p>Share</p>
 								</Tooltip.Content>
 							</Tooltip.Root>
 
